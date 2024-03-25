@@ -1,17 +1,18 @@
 use anyhow::Result;
-use mockito::mock;
 use reqwest::{Client, Method, Request, Url};
 use reqwest_middleware::ClientBuilder;
 use reqwest_middleware_cache::{managers::CACacheManager, Cache, CacheManager, CacheMode};
 
 #[tokio::test]
 async fn default_mode() -> Result<()> {
-    let m = mock("GET", "/")
+    let mut server = mockito::Server::new_async().await;
+    let m = server
+        .mock("GET", "/")
         .with_status(200)
         .with_header("cache-control", "max-age=86400, public")
         .with_body("test")
         .create();
-    let url = format!("{}/", &mockito::server_url());
+    let url = format!("{}/", &server.url());
     let manager = CACacheManager::default();
     let path = manager.path.clone();
     let key = format!("GET:{}", &url);
